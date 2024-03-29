@@ -5,7 +5,7 @@ metadata:
   namespace: north-america
 spec:
 
-  # where to run Mirror Maker
+  # which cluster to use to store Mirror Maker internal data
   connectCluster: europe
 
 
