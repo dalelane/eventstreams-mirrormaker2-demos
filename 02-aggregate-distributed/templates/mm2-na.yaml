@@ -1,8 +1,8 @@
 kind: KafkaMirrorMaker2
 apiVersion: eventstreams.ibm.com/v1beta2
 metadata:
-  name: mm2
-  namespace: europe
+  name: mm2-na
+  namespace: north-america
 spec:
 
   # where to run Mirror Maker
@@ -17,42 +17,6 @@ spec:
     # North America -> Europe
     #-----------------------------------------
     - sourceCluster: northamerica
-      targetCluster: europe
-      topicsPattern: LH.*
-      sourceConnector:
-        config:
-          # check for new topics every 10 minutes as we're not expecting new
-          #  topics to be created regularly
-          refresh.topics.interval.seconds: 600000
-          refresh.topics.enabled: true
-
-          # replication factor to use for created topics
-          replication.factor: 3
-
-          # prefix the names of topics in the target cluster with the name of the
-          #  source cluster that they came from
-          replication.policy.class: org.apache.kafka.connect.mirror.DefaultReplicationPolicy
-
-          # use the source cluster to store the offset mapping information
-          offset-syncs.topic.location: source
-          # config for offset-syncs topic
-          offset-syncs.topic.replication.factor: 3
-          # max offset lag before sync'ing offset mapping
-          offset.lag.max: 100
-
-          # don't try to mirror the ACL's, as we will use the
-          #  User Operator for this
-          sync.topic.acls.enabled: false
-
-          # sync config changes to topics in the source cluster to the
-          #  target cluster every 10 minutes
-          sync.topic.configs.enabled: true
-          sync.topic.configs.interval.seconds: 600
-
-    #-----------------------------------------
-    # South America -> Europe
-    #-----------------------------------------
-    - sourceCluster: southamerica
       targetCluster: europe
       topicsPattern: LH.*
       sourceConnector:
@@ -106,21 +70,6 @@ spec:
           - certificate: ca.crt
             secretName: na-eventstreams-cluster-ca-cert
     #-----------------------------------------
-    # South American region
-    #-----------------------------------------
-    - alias: southamerica
-      bootstrapServers: sa-eventstreams-kafka-bootstrap.south-america.svc:9098
-      authentication:
-        username: mm2-southamerica
-        passwordSecret:
-          password: password
-          secretName: mm2-southamerica
-        type: scram-sha-512
-      tls:
-        trustedCertificates:
-          - certificate: ca.crt
-            secretName: sa-eventstreams-cluster-ca-cert
-    #-----------------------------------------
     # European region
     #-----------------------------------------
     - alias: europe
@@ -132,10 +81,10 @@ spec:
           secretName: mm2-europe
         type: scram-sha-512
       config:
-        group.id: mm2
-        status.storage.topic: __mm2_status
-        offset.storage.topic: __mm2_offsets
-        config.storage.topic: __mm2_configs
+        group.id: mm2-na
+        status.storage.topic: __mm2_na_status
+        offset.storage.topic: __mm2_na_offsets
+        config.storage.topic: __mm2_na_configs
         status.storage.replication.factor: 3
         config.storage.replication.factor: 3
         offset.storage.replication.factor: 3
@@ -166,7 +115,7 @@ spec:
           productVersion: 11.3.1
           productID: 2a79e49111f44ec3acd89608e56138f5
           cloudpakName: IBM Cloud Pak for Integration
-          productChargedContainers: mm2-mirrormaker2
+          productChargedContainers: mm2-na-mirrormaker2
           productCloudpakRatio: '2:1'
           productName: IBM Event Streams for Non Production
           eventstreams.production.type: CloudPakForIntegrationNonProduction

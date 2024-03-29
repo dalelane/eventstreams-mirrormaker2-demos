@@ -1,10 +1,10 @@
 apiVersion: eventstreams.ibm.com/v1beta2
 kind: KafkaUser
 metadata:
-  name: mm2-northamerica
-  namespace: north-america
+  name: mm2-southamerica
+  namespace: south-america
   labels:
-    eventstreams.ibm.com/cluster: na-eventstreams
+    eventstreams.ibm.com/cluster: sa-eventstreams
 spec:
   authentication:
     type: scram-sha-512
