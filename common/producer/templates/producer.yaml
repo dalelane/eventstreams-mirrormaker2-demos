@@ -1,0 +1,32 @@
+apiVersion: eventstreams.ibm.com/v1beta2
+kind: KafkaConnector
+metadata:
+  name: datagen
+  labels:
+    eventstreams.ibm.com/cluster: datagen-host
+spec:
+  class: com.ibm.eventautomation.demos.loosehangerjeans.DatagenSourceConnector
+  tasksMax: 1
+  config:
+    key.converter: org.apache.kafka.connect.storage.StringConverter
+    key.converter.schemas.enable: false
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter.schemas.enable: false
+
+    topic.name.orders: LH.ORDERS
+    topic.name.cancellations: LH.CANCELLATIONS
+    topic.name.badgeins: LH.DOORS
+    topic.name.stockmovements: LH.STOCK
+    topic.name.newcustomers: LH.CUSTOMERS
+    topic.name.sensorreadings: LH.SENSORS
+
+    timings.ms.orders: 10000
+    timings.ms.badgeins: 10000
+    timings.ms.stockmovements: 60000
+    timings.ms.newcustomers: 10000
+    timings.ms.sensorreadings: 10000
+
+    locations.regions: {{ region }}
+    locations.warehouses: {{ locations }}
+
+

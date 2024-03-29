@@ -1,0 +1,27 @@
+- name: Create credentials for consumer
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ consumer }}"
+    namespace: "{{ es_namespace }}"
+    template: "{{ user_template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+
+- name: Start consumer
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/consumer/templates/consumer.yaml"
+  vars:
+    name: "{{ consumer }}"
+    namespace: "{{ namespace }}"
+    es_cluster: "{{ es_cluster }}"
+    es_namespace: "{{ es_namespace }}"
+    topics: "{{ topics }}"
+    username: "{{ consumer }}"
+    consumer_group: "{{ consumer }}"

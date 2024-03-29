@@ -1,0 +1,66 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ name }}
+  namespace: {{ namespace }}
+  labels:
+    app: {{ name }}
+    app.kubernetes.io/component: {{ name }}
+    app.kubernetes.io/instance: {{ name }}
+    app.kubernetes.io/name: {{ name }}
+    app.openshift.io/runtime: java
+    app.openshift.io/runtime-namespace: {{ namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ name }}
+  template:
+    metadata:
+      labels:
+        app: {{ name }}
+        deployment: {{ name }}
+    spec:
+      volumes:
+        - name: kafka-ca-cert
+          secret:
+            secretName: {{ es_cluster }}-cluster-ca-cert
+            defaultMode: 420
+      containers:
+        - name: consumer-southamerica
+          image: dalelane/kafka-consumer:0.0.6
+          env:
+            - name: BOOTSTRAP_SERVERS
+              value: '{{ es_cluster }}-kafka-bootstrap.{{ es_namespace }}.svc:9098'
+            - name: GROUP_ID
+              value: {{ consumer_group }}
+            - name: TOPICS_PATTERN
+              value: "{{ topics }}"
+            - name: SASL_MECHANISM
+              value: SCRAM-SHA-512
+            - name: SASL_JAAS_CONFIG
+              valueFrom:
+                secretKeyRef:
+                  name: {{ username }}
+                  key: sasl.jaas.config
+            - name: TRUSTSTORE_TYPE
+              value: PKCS12
+            - name: TRUSTSTORE_FILE
+              value: /mnt/kafka-ca-cert.p12
+            - name: TRUSTSTORE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ es_cluster }}-cluster-ca-cert
+                  key: ca.password
+          volumeMounts:
+            - name: kafka-ca-cert
+              readOnly: true
+              mountPath: /mnt/kafka-ca-cert.p12
+              subPath: ca.p12
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              cpu: 500m
+              memory: 500Mi

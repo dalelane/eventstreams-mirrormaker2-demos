@@ -1,0 +1,21 @@
+- name: Create Event Streams cluster {{ es_cluster }} in {{ namespace }}
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ es_cluster }}"
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/create-regions/templates/es-instance.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+
+- name: Create UI login credentials for {{ es_cluster }}
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/create-regions/templates/ui-user.yaml"
+  vars:
+    es_cluster: "{{ es_cluster }}"

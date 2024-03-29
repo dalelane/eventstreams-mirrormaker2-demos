@@ -1,0 +1,45 @@
+- name: Create topics that the producer will send messages to in the {{ region }} region
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
+  vars:
+    es_cluster: "{{ es_cluster }}"
+
+- name: Create credentials for the producer in the {{ region }} region
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/producer/templates/user.yaml"
+  vars:
+    es_cluster: "{{ es_cluster }}"
+
+- name: Create host for the {{ region }} producer
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/producer/templates/connect.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+
+- name: Start producer to the {{ es_cluster }} cluster in the {{ namespace }} namespace
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/producer/templates/producer.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  vars:
+    es_cluster: "{{ es_cluster }}"
+    region: "{{ region }}"
+    locations: "{{ locations }}"

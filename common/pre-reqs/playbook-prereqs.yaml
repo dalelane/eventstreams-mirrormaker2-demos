@@ -1,0 +1,18 @@
+- name: Install local pre-requisites
+  ansible.builtin.pip:
+    name:
+      - openshift
+      - pyyaml
+      - kubernetes
+      - jmespath
+
+- name: Check for image-registry needed for building producer containers
+  kubernetes.core.k8s_info:
+    validate_certs: false
+    api_version: v1
+    kind: Pod
+    label_selectors:
+      - "docker-registry=default"
+    namespace: openshift-image-registry
+  register: image_registry_
+  failed_when: image_registry_.resources | length == 0
