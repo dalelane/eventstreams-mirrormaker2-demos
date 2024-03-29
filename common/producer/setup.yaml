@@ -1,3 +1,5 @@
+---
+
 - name: Create topics that the producer will send messages to in the {{ region }} region
   kubernetes.core.k8s:
     validate_certs: false

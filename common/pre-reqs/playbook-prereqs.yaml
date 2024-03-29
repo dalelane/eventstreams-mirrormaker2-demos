@@ -1,3 +1,5 @@
+---
+
 - name: Install local pre-requisites
   ansible.builtin.pip:
     name:

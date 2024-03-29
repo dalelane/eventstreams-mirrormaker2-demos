@@ -1,0 +1,71 @@
+- name: Create credentials for Mirror Maker 2 to use to access the source clusters
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    template: "{{ playbook_dir }}/templates/{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-northamerica
+      namespace: north-america
+      template: mm2-user-na.yaml
+    - name: mm2-southamerica
+      namespace: south-america
+      template: mm2-user-sa.yaml
+
+- name: Create credentials for Mirror Maker 2 to use to access the target cluster
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    template: "{{ playbook_dir }}/templates/{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-europe
+      namespace: europe
+      template: mm2-user-eu.yaml
+
+- name: Copy secrets to the target cluster for use by Mirror Maker 2
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "{{ item.secret }}"
+    origin: "{{ item.origin }}"
+    destination: "{{ item.destination }}"
+  loop:
+    - reason: password for North American cluster
+      secret: mm2-northamerica
+      origin: north-america
+      destination: europe
+    - reason: truststore for North American cluster
+      secret: na-eventstreams-cluster-ca-cert
+      origin: north-america
+      destination: europe
+    - reason: password for South American cluster
+      secret: mm2-southamerica
+      origin: south-america
+      destination: europe
+    - reason: truststore for South American cluster
+      secret: "sa-eventstreams-cluster-ca-cert"
+      origin: south-america
+      destination: europe
+
+- name: Start Mirror Maker 2
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    template: "{{ playbook_dir }}/templates/mm2.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200

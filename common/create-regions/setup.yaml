@@ -1,3 +1,5 @@
+---
+
 - name: Create namespaces
   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/create-regions/create-namespace.yaml"
   vars:

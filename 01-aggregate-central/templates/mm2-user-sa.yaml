@@ -1,0 +1,30 @@
+apiVersion: eventstreams.ibm.com/v1beta2
+kind: KafkaUser
+metadata:
+  name: mm2-southamerica
+  namespace: south-america
+  labels:
+    eventstreams.ibm.com/cluster: sa-eventstreams
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      # access to the topics that MirrorMaker will consume messages from
+      - operations:
+          - DescribeConfigs
+          - Read
+        resource:
+          name: LH.
+          patternType: prefix
+          type: topic
+      # access to the topic were MirrorMaker will store offset mappings
+      - operations:
+          - Create
+          - DescribeConfigs
+          - Read
+          - Write
+        resource:
+          name: mm2-offset-syncs.europe.internal
+          type: topic

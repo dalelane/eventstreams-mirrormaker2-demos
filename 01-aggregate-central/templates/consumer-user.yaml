@@ -1,0 +1,31 @@
+apiVersion: eventstreams.ibm.com/v1beta2
+kind: KafkaUser
+metadata:
+  name: consumer-europe
+  namespace: europe
+  labels:
+    eventstreams.ibm.com/cluster: eu-eventstreams
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      - operations:
+          - Read
+        resource:
+          name: northamerica
+          patternType: prefix
+          type: topic
+      - operations:
+          - Read
+        resource:
+          name: southamerica
+          patternType: prefix
+          type: topic
+      - operations:
+          - Read
+        resource:
+          name: consumer-europe
+          patternType: literal
+          type: group

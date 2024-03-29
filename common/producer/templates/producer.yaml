@@ -28,5 +28,3 @@ spec:
 
     locations.regions: {{ region }}
     locations.warehouses: {{ locations }}
-
-

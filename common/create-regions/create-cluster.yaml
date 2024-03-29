@@ -1,3 +1,5 @@
+---
+
 - name: Create Event Streams cluster {{ es_cluster }} in {{ namespace }}
   kubernetes.core.k8s:
     validate_certs: false
