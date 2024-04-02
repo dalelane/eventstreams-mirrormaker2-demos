@@ -26,6 +26,16 @@ Ansible playbook: [`02-aggregate-distributed/setup.yaml`](./02-aggregate-distrib
 
 Example of how to run the playbook: [`setup-02-aggregate-distributed.sh`](./setup-02-aggregate-distributed.sh)
 
+## Using Mirror Maker 2 to broadcast events to multiple regions
+
+![diagram](./03-broadcast/diagram.png)
+
+Ansible playbook: [`03-broadcast/setup.yaml`](./03-broadcast/setup.yaml)
+
+Example of how to run the playbook: [`setup-03-broadcast.sh`](./setup-03-broadcast.sh)
+
+To see the events received by the consumer applications, you can run the [`consumer-northamerica.sh`](./consumer-northamerica.sh) and [`consumer-southamerica.sh`](./consumer-southamerica.sh) scripts.
+
 ## Using Mirror Maker 2 to...
 
 _more examples coming soon_

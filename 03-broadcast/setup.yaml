@@ -1,0 +1,59 @@
+---
+- name: Fan out / Broadcast - with a mirrormaker instance in each target region
+  hosts: localhost
+  connection: local
+  vars:
+    ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
+    storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
+
+  tasks:
+    - name: Check for required variables
+      fail:
+        msg: "Required variable {{item}} has not been provided"
+      when: vars[item] is undefined
+      loop:
+        - ibm_entitlement_key
+        - storage_class
+
+    - name: Check for playbook pre-requisites
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/pre-reqs/playbook-prereqs.yaml"
+
+    - name: Install Event Streams
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/install-eventstreams/setup.yaml"
+
+    - name: Create the North America, South America, and Europe regions
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/create-regions/setup.yaml"
+
+    - name: Start producer in the European region
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/producer/setup.yaml"
+      vars:
+        namespace: europe
+        es_cluster: eu-eventstreams
+        region: EU
+        locations: "Antwerp,Rotterdam,Dusseldorf,Brussels,Hamburg"
+
+    - name: Set up Mirror Maker 2 instances
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/start-mm2.yaml"
+
+    - name: Start consumers in North America and South America regions
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/consumer/setup.yaml"
+      vars:
+        namespace: "{{ item.namespace }}"
+        consumer: "{{ item.consumer }}"
+        user_template: "{{ item.user_template }}"
+        es_cluster: "{{ item.es_cluster }}"
+        es_namespace: "{{ item.es_namespace }}"
+        topics: "{{ item.topics }}"
+      loop:
+        - namespace: north-america
+          consumer: consumer-northamerica
+          user_template: "{{ playbook_dir }}/templates/consumer-na.yaml"
+          es_cluster: na-eventstreams
+          es_namespace: north-america
+          topics: !unsafe 'LH\\..*'
+        - namespace: south-america
+          consumer: consumer-southamerica
+          user_template: "{{ playbook_dir }}/templates/consumer-sa.yaml"
+          es_cluster: sa-eventstreams
+          es_namespace: south-america
+          topics: !unsafe 'LH\\..*'

@@ -1,0 +1,21 @@
+apiVersion: eventstreams.ibm.com/v1beta2
+kind: KafkaUser
+metadata:
+  name: mm2-europe
+  namespace: europe
+  labels:
+    eventstreams.ibm.com/cluster: eu-eventstreams
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      # access to the topics that MirrorMaker will consume messages from
+      - operations:
+          - DescribeConfigs
+          - Read
+        resource:
+          name: LH.
+          patternType: prefix
+          type: topic
