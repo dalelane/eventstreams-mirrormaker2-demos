@@ -1,0 +1,111 @@
+- name: Create credentials for Mirror Maker 2 in all regions
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    template: "{{ playbook_dir }}/templates/{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-northamerica
+      namespace: north-america
+      template: mm2-user-na.yaml
+    - name: mm2-southamerica
+      namespace: south-america
+      template: mm2-user-sa.yaml
+    - name: mm2-europe
+      namespace: europe
+      template: mm2-user-eu.yaml
+
+- name: Distribute secrets for use by Mirror Maker 2 instances
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "{{ item.secret }}"
+    origin: "{{ item.origin }}"
+    destination: "{{ item.destination }}"
+  loop:
+    - reason: Europe cluster password for North American MM2
+      secret: mm2-europe
+      origin: europe
+      destination: north-america
+    - reason: Europe truststore for North American MM2
+      secret: eu-eventstreams-cluster-ca-cert
+      origin: europe
+      destination: north-america
+    - reason: Europe cluster password for South American MM2
+      secret: mm2-europe
+      origin: europe
+      destination: south-america
+    - reason: Europe truststore for South American MM2
+      secret: eu-eventstreams-cluster-ca-cert
+      origin: europe
+      destination: south-america
+    - reason: North American cluster password for European MM2
+      secret: mm2-northamerica
+      origin: north-america
+      destination: europe
+    - reason: North American truststore password for European MM2
+      secret: na-eventstreams-cluster-ca-cert
+      origin: north-america
+      destination: europe
+    - reason: North American cluster password for South American MM2
+      secret: mm2-northamerica
+      origin: north-america
+      destination: south-america
+    - reason: North American truststore password for South American MM2
+      secret: na-eventstreams-cluster-ca-cert
+      origin: north-america
+      destination: south-america
+    - reason: South American cluster password for European MM2
+      secret: mm2-southamerica
+      origin: south-america
+      destination: europe
+    - reason: South American truststore for European MM2
+      secret: "sa-eventstreams-cluster-ca-cert"
+      origin: south-america
+      destination: europe
+    - reason: South American cluster password for North American MM2
+      secret: mm2-southamerica
+      origin: south-america
+      destination: north-america
+    - reason: South American truststore for North American MM2
+      secret: "sa-eventstreams-cluster-ca-cert"
+      origin: south-america
+      destination: north-america
+
+- name: Start Mirror Maker 2 in North America
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    template: "{{ playbook_dir }}/templates/mm2-na.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+
+- name: Start Mirror Maker 2 in South America
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    template: "{{ playbook_dir }}/templates/mm2-sa.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+
+- name: Start Mirror Maker 2 in Europe
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    template: "{{ playbook_dir }}/templates/mm2-eu.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200

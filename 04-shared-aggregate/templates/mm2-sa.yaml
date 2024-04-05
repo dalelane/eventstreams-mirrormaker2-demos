@@ -1,0 +1,172 @@
+kind: KafkaMirrorMaker2
+apiVersion: eventstreams.ibm.com/v1beta2
+metadata:
+  name: mm2-sa
+  namespace: south-america
+spec:
+
+  # which cluster to use to store Mirror Maker internal data
+  connectCluster: southamerica
+
+
+  ##################################################
+  # SPECIFY THE MIRRORS TO RUN
+  ##################################################
+  mirrors:
+    #-----------------------------------------
+    # Europe -> South America
+    #-----------------------------------------
+    - sourceCluster: europe
+      targetCluster: southamerica
+      topicsPattern: LH.*
+      sourceConnector:
+        config:
+          # check for new topics every 10 minutes as we're not expecting new
+          #  topics to be created regularly
+          refresh.topics.interval.seconds: 600000
+          refresh.topics.enabled: true
+
+          # replication factor to use for created topics
+          replication.factor: 3
+
+          # prefix the names of topics in the target cluster with the name of the
+          #  source cluster that they came from
+          replication.policy.class: org.apache.kafka.connect.mirror.DefaultReplicationPolicy
+
+          # use the source cluster to store the offset mapping information
+          offset-syncs.topic.location: target
+          # config for offset-syncs topic
+          offset-syncs.topic.replication.factor: 3
+          # max offset lag before sync'ing offset mapping
+          offset.lag.max: 100
+
+          # don't try to mirror the ACL's, as we will use the
+          #  User Operator for this
+          sync.topic.acls.enabled: false
+
+          # sync config changes to topics in the source cluster to the
+          #  target cluster every 10 minutes
+          sync.topic.configs.enabled: true
+          sync.topic.configs.interval.seconds: 600
+    #-----------------------------------------
+    # North America -> South America
+    #-----------------------------------------
+    - sourceCluster: northamerica
+      targetCluster: southamerica
+      topicsPattern: LH.*
+      sourceConnector:
+        config:
+          # check for new topics every 10 minutes as we're not expecting new
+          #  topics to be created regularly
+          refresh.topics.interval.seconds: 600000
+          refresh.topics.enabled: true
+
+          # replication factor to use for created topics
+          replication.factor: 3
+
+          # prefix the names of topics in the target cluster with the name of the
+          #  source cluster that they came from
+          replication.policy.class: org.apache.kafka.connect.mirror.DefaultReplicationPolicy
+
+          # use the source cluster to store the offset mapping information
+          offset-syncs.topic.location: target
+          # config for offset-syncs topic
+          offset-syncs.topic.replication.factor: 3
+          # max offset lag before sync'ing offset mapping
+          offset.lag.max: 100
+
+          # don't try to mirror the ACL's, as we will use the
+          #  User Operator for this
+          sync.topic.acls.enabled: false
+
+          # sync config changes to topics in the source cluster to the
+          #  target cluster every 10 minutes
+          sync.topic.configs.enabled: true
+          sync.topic.configs.interval.seconds: 600
+
+
+  ##################################################
+  # DEFINE THE KAFKA CLUSTERS TO USE FOR MIRRORING
+  ##################################################
+  clusters:
+    #-----------------------------------------
+    # North American region
+    #-----------------------------------------
+    - alias: northamerica
+      bootstrapServers: na-eventstreams-kafka-bootstrap.north-america.svc:9098
+      authentication:
+        username: mm2-northamerica
+        passwordSecret:
+          password: password
+          secretName: mm2-northamerica
+        type: scram-sha-512
+      tls:
+        trustedCertificates:
+          - certificate: ca.crt
+            secretName: na-eventstreams-cluster-ca-cert
+    #-----------------------------------------
+    # South American region
+    #-----------------------------------------
+    - alias: southamerica
+      bootstrapServers: sa-eventstreams-kafka-bootstrap.south-america.svc:9098
+      authentication:
+        username: mm2-southamerica
+        passwordSecret:
+          password: password
+          secretName: mm2-southamerica
+        type: scram-sha-512
+      config:
+        group.id: mm2-sa
+        status.storage.topic: __mm2_sa_status
+        offset.storage.topic: __mm2_sa_offsets
+        config.storage.topic: __mm2_sa_configs
+        status.storage.replication.factor: 3
+        config.storage.replication.factor: 3
+        offset.storage.replication.factor: 3
+        key.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+        value.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+      tls:
+        trustedCertificates:
+          - certificate: ca.crt
+            secretName: sa-eventstreams-cluster-ca-cert
+    #-----------------------------------------
+    # European region
+    #-----------------------------------------
+    - alias: europe
+      bootstrapServers: eu-eventstreams-kafka-bootstrap.europe.svc:9098
+      authentication:
+        username: mm2-europe
+        passwordSecret:
+          password: password
+          secretName: mm2-europe
+        type: scram-sha-512
+      tls:
+        trustedCertificates:
+          - certificate: ca.crt
+            secretName: eu-eventstreams-cluster-ca-cert
+
+
+  #-----------------------------------------
+  # spec for the Mirror Maker pod
+  #-----------------------------------------
+  replicas: 1
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 2Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  template:
+    pod:
+      metadata:
+        annotations:
+          cloudpakId: c8b82d189e7545f0892db9ef2731b90d
+          productVersion: 11.3.1
+          productID: 2a79e49111f44ec3acd89608e56138f5
+          cloudpakName: IBM Cloud Pak for Integration
+          productChargedContainers: mm2-sa-mirrormaker2
+          productCloudpakRatio: '2:1'
+          productName: IBM Event Streams for Non Production
+          eventstreams.production.type: CloudPakForIntegrationNonProduction
+          productMetric: VIRTUAL_PROCESSOR_CORE

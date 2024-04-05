@@ -1,0 +1,34 @@
+apiVersion: eventstreams.ibm.com/v1beta2
+kind: KafkaUser
+metadata:
+  name: consumer-northamerica
+  namespace: north-america
+  labels:
+    eventstreams.ibm.com/cluster: na-eventstreams
+spec:
+  authentication:
+    type: scram-sha-512
+  authorization:
+    type: simple
+    acls:
+      - operations:
+          - Read
+        resource:
+          name: LH.ORDERS
+          type: topic
+      - operations:
+          - Read
+        resource:
+          name: europe.LH.ORDERS
+          type: topic
+      - operations:
+          - Read
+        resource:
+          name: southamerica.LH.ORDERS
+          type: topic
+      - operations:
+          - Read
+        resource:
+          name: consumer-northamerica
+          patternType: literal
+          type: group

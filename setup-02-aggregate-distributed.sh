@@ -19,7 +19,7 @@ fi
 
 # run the playbook
 ansible-playbook   \
-    -e ansible_python_interpreter=/Users/dalelane/dev/qp/demos/mm2/venv/bin/python3 \
+    -e ansible_python_interpreter="$(pwd)/venv/bin/python3" \
     -e ibm_entitlement_key=YOUR_IBM_ENTITLEMENT_KEY \
     -e storage_class=STORAGE_CLASS_TO_USE_FOR_EVENT_STREAMS \
     02-aggregate-distributed/setup.yaml

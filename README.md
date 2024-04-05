@@ -36,6 +36,19 @@ Example of how to run the playbook: [`setup-03-broadcast.sh`](./setup-03-broadca
 
 To see the events received by the consumer applications, you can run the [`consumer-northamerica.sh`](./consumer-northamerica.sh) and [`consumer-southamerica.sh`](./consumer-southamerica.sh) scripts.
 
+## Using Mirror Maker 2 to distribute topics across multiple regions
+
+![diagram](./04-shared-aggregate/diagram.png)
+
+Ansible playbook: [`04-shared-aggregate/setup.yaml`](./04-shared-aggregate/setup.yaml)
+
+Example of how to run the playbook: [`setup-04-shared-aggregate.sh`](./setup-04-shared-aggregate.sh)
+
+To see the events received by the consumer applications, you can run the consumer scripts:
+- [`consumer-northamerica.sh`](./consumer-northamerica.sh)
+- [`consumer-southamerica.sh`](./consumer-southamerica.sh)
+- [`consumer-europe.sh`](./consumer-europe.sh)
+
 ## Using Mirror Maker 2 to...
 
 _more examples coming soon_

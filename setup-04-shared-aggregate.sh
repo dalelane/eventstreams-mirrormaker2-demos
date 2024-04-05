@@ -22,6 +22,7 @@ ansible-playbook   \
     -e ansible_python_interpreter="$(pwd)/venv/bin/python3" \
     -e ibm_entitlement_key=YOUR_IBM_ENTITLEMENT_KEY \
     -e storage_class=STORAGE_CLASS_TO_USE_FOR_EVENT_STREAMS \
-    03-broadcast/setup.yaml
+    04-shared-aggregate/setup.yaml
 
+# display URL and username/password for each Event Streams cluster
 ./common/scripts/display-ui-details.sh
