@@ -1,0 +1,14 @@
+- name: Update consumer
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/consumer/templates/consumer.yaml"
+  vars:
+    name: "{{ consumer }}"
+    namespace: "{{ namespace }}"
+    es_cluster: "{{ es_cluster }}"
+    es_namespace: "{{ es_namespace }}"
+    topics: "{{ topics }}"
+    username: "{{ consumer }}"
+    consumer_group: "{{ consumer }}"

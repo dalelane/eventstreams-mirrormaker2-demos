@@ -1,0 +1,62 @@
+---
+
+- name: Create topics that the producer will send messages to
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ es_namespace }}"
+    template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
+  vars:
+    es_cluster: "{{ es_cluster }}"
+
+- name: Create credentials for the producer
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ es_namespace }}"
+    template: "{{ playbook_dir }}/../common/producer/templates/user.yaml"
+  vars:
+    es_cluster: "{{ es_cluster }}"
+
+- name: Copy producer credentials to the location where the app will run
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "{{ item.secret }}"
+    origin: "{{ item.origin }}"
+    destination: "{{ item.destination }}"
+  loop:
+    - reason: password
+      secret: producer-credentials
+      origin: "{{ es_namespace }}"
+      destination: "{{ producer_namespace }}"
+    - reason: truststore
+      secret: "{{ es_cluster }}-cluster-ca-cert"
+      origin: "{{ es_namespace }}"
+      destination: "{{ producer_namespace }}"
+
+- name: Create host for the producer
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ producer_namespace }}"
+    template: "{{ playbook_dir }}/../common/remote-producer/templates/connect.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+
+- name: Start producer to the {{ es_cluster }} cluster in the {{ es_namespace }} namespace
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ producer_namespace }}"
+    template: "{{ playbook_dir }}/../common/producer/templates/producer.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  vars:
+    region: "{{ region }}"
+    locations: "{{ locations }}"

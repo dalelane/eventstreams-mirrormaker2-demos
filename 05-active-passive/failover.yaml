@@ -1,0 +1,33 @@
+---
+- name: Failover to passive environment
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Disable Mirror Maker as the origin cluster is no longer available
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: eventstreams.ibm.com/v1beta2
+          kind: KafkaMirrorMaker2
+          metadata:
+            name: mm2
+            namespace: europe
+          spec:
+            replicas: 0
+
+    - name: Update consumer app to use Kafka in Europe
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-consumer/failover.yaml"
+      vars:
+        es_cluster: eu-eventstreams
+        es_namespace: europe
+        namespace: south-america
+        consumer: consumer-southamerica
+        user_template: "{{ playbook_dir }}/templates/consumer-user.yaml"
+        topics: !unsafe 'LH\\..*'
+
+    - name: Update producer app to use Kafka in Europe
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-producer/failover.yaml"
+      vars:
+        es_cluster: eu-eventstreams
+        es_namespace: europe
+        producer_namespace: south-america

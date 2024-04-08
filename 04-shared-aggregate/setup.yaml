@@ -2,9 +2,9 @@
 - name: Shared aggregate - with mirror maker used to maintain a logical topic distributed across multiple regions
   hosts: localhost
   connection: local
-  vars:
-    ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
-    storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
+  # vars:
+  #   ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
+  #   storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
 
   tasks:
     - name: Check for required variables

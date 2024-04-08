@@ -1,0 +1,29 @@
+apiVersion: eventstreams.ibm.com/v1beta2
+kind: KafkaUser
+metadata:
+  name: consumer-southamerica
+  labels:
+    eventstreams.ibm.com/cluster: {{ es_cluster }}
+spec:
+  authentication:
+    type: scram-sha-512
+    password:
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: kafkauser-consumer-southamerica
+  authorization:
+    type: simple
+    acls:
+      - operations:
+          - Read
+        resource:
+          name: LH.
+          type: topic
+          patternType: prefix
+      - operations:
+          - Read
+        resource:
+          name: consumer-southamerica
+          patternType: literal
+          type: group

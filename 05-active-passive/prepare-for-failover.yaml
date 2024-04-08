@@ -1,0 +1,45 @@
+- name: Copy passwords from active cluster to the passive environment to let them be reused
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "{{ item.secret }}"
+    new_secret: "kafkauser-{{ item.secret }}"
+    origin: "{{ item.origin }}"
+    destination: "{{ item.destination }}"
+  loop:
+    - secret: "{{ consumer }}"
+      origin: "{{ active_es_namespace }}"
+      destination: "{{ passive_es_namespace }}"
+    - secret: "{{ producer }}"
+      origin: "{{ active_es_namespace }}"
+      destination: "{{ passive_es_namespace }}"
+
+
+- name: Register credentials for apps in the passive environment
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ passive_es_namespace }}"
+    name: "{{ item.name }}"
+    template: "{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  vars:
+    es_cluster: "{{ item.es_cluster }}"
+  loop:
+    - name: "{{ consumer }}"
+      template: "{{ consumer_template }}"
+      es_cluster: "{{ passive_es_cluster }}"
+    - name: "{{ producer }}"
+      template: "{{ producer_template }}"
+      es_cluster: "{{ passive_es_cluster }}"
+
+
+- name: Copy truststore from the passive environment to the location where the apps will run
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "{{ passive_es_cluster }}-cluster-ca-cert"
+    origin: "{{ passive_es_namespace }}"
+    destination: "{{ namespace }}"

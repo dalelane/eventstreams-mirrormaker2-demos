@@ -1,0 +1,14 @@
+---
+
+- name: Update producer
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ producer_namespace }}"
+    template: "{{ playbook_dir }}/../common/remote-producer/templates/connect.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+

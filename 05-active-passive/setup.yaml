@@ -1,0 +1,61 @@
+---
+- name: Active / passive topology
+  hosts: localhost
+  connection: local
+  # vars:
+  #   ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
+  #   storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
+
+  tasks:
+    - name: Check for required variables
+      fail:
+        msg: "Required variable {{item}} has not been provided"
+      when: vars[item] is undefined
+      loop:
+        - ibm_entitlement_key
+        - storage_class
+
+    - name: Check for playbook pre-requisites
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/pre-reqs/playbook-prereqs.yaml"
+
+    - name: Install Event Streams
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/install-eventstreams/setup.yaml"
+
+    - name: Create the North America, South America, and Europe regions
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/create-regions.yaml"
+
+    - name: Start producer in the South American region, producing to Kafka in North America
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-producer/setup.yaml"
+      vars:
+        es_namespace: north-america
+        es_cluster: na-eventstreams
+        producer_namespace: south-america
+        region: SA
+        locations: "SãoPaulo,BuenosAires,Lima,Bogotá,LaPaz"
+
+    - name: Start consumer in the South American region, consuming from Kafka in North America
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-consumer/setup.yaml"
+      vars:
+        namespace: south-america
+        consumer: consumer-southamerica
+        user_template: "{{ playbook_dir }}/templates/consumer-user.yaml"
+        es_cluster: na-eventstreams
+        es_namespace: north-america
+        topics: !unsafe 'LH\\..*'
+
+    - name: Prepare for failover to the Europe region
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/prepare-for-failover.yaml"
+      vars:
+        namespace: south-america
+        consumer: consumer-southamerica
+        consumer_template: "{{ playbook_dir }}/templates/failover-consumer-user.yaml"
+        producer: producer-credentials
+        producer_template: "{{ playbook_dir }}/templates/failover-producer-user.yaml"
+        active_es_cluster: na-eventstreams
+        active_es_namespace: north-america
+        passive_es_cluster: eu-eventstreams
+        passive_es_namespace: europe
+        topics: !unsafe 'LH\\..*'
+
+    - name: Set up Mirror Maker 2 in the Europe region
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/start-mm2.yaml"
