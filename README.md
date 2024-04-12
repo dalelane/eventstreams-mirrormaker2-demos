@@ -8,6 +8,8 @@ These demonstrations all run in a single OpenShift cluster, using separate names
 
 To see the requirements for creating these demos, see [REQUIREMENTS.md](./REQUIREMENTS.md).
 
+A more detailed description of what these demos illustrate can be found in the blog posts starting from https://dalelane.co.uk/blog/?p=5098
+
 ## Using Mirror Maker 2 to aggregate events from multiple regions
 
 ![diagram](./01-aggregate-central/diagram.png)
@@ -49,6 +51,30 @@ To see the events received by the consumer applications, you can run the consume
 - [`consumer-southamerica.sh`](./consumer-southamerica.sh)
 - [`consumer-europe.sh`](./consumer-europe.sh)
 
-## Using Mirror Maker 2 to...
+## Using Mirror Maker 2 to create a failover cluster
 
-_more examples coming soon_
+![diagram](./05-active-passive/diagram.png)
+
+Ansible playbooks:
+- [`05-shared-aggregate/setup.yaml`](./05-active-passive/setup.yaml)
+- [`05-shared-aggregate/failover.yaml`](./05-active-passive/failover.yaml)
+
+Example of how to run the playbooks:
+- [`setup-05-active-passive.sh`](./setup-05-active-passive.sh)
+- [`setup-05-failover-to-passive.sh`](./setup-05-failover-to-passive.sh)
+
+## Using Mirror Maker 2 to restore events from a backup cluster
+
+![diagram](./06-backup-restore/01-initial-setup/diagram.png)
+
+Ansible playbooks:
+- [`06-backup-restore/initial-setup.yaml`](./06-backup-restore/initial-setup.yaml)
+- [`06-backup-restore/recreate-from-backup.yaml`](./06-backup-restore/recreate-from-backup.yaml)
+- [`06-backup-restore/resume-applications.yaml`](./06-backup-restore/resume-applications.yaml)
+- [`06-backup-restore/setup-new-backup.yaml`](./06-backup-restore/setup-new-backup.yaml)
+
+Example of how to run the playbooks:
+- [`setup-06-backup.sh`](./setup-06-backup.sh)
+- [`setup-06-restore.sh`](./setup-06-restore.sh)
+- [`setup-06-resume.sh`](./setup-06-resume.sh)
+- [`setup-06-setup-new-backup.sh`](./setup-06-setup-new-backup.sh)
