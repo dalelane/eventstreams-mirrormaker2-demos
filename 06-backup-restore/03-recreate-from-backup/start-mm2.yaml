@@ -1,0 +1,60 @@
+- name: Create credentials for the restore Mirror Maker 2 job to use to access the backup cluster
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    template: "{{ playbook_dir }}/03-recreate-from-backup/templates/{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-europe-restore
+      namespace: europe
+      template: mm2-restore-user-eu.yaml
+
+- name: Create credentials for the restore Mirror Maker 2 job to use to access the restored cluster
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    template: "{{ playbook_dir }}/03-recreate-from-backup/templates/{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-northamerica-restore
+      namespace: north-america
+      template: mm2-restore-user-na.yaml
+
+- name: Copy secrets to the target cluster for use by Mirror Maker 2 restore job
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "{{ item.secret }}"
+    origin: "{{ item.origin }}"
+    destination: "{{ item.destination }}"
+  loop:
+    - reason: password
+      secret: mm2-europe-restore
+      origin: europe
+      destination: north-america
+    - reason: truststore
+      secret: eu-eventstreams-cluster-ca-cert
+      origin: europe
+      destination: north-america
+
+- name: Start the restore process
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    template: "{{ playbook_dir }}/03-recreate-from-backup/templates/mm2-restore.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200

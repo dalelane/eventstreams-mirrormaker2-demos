@@ -1,0 +1,52 @@
+- name: Delete the Mirror Maker 2 used for restoring events now the restore is complete
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: absent
+    name: mm2-restore
+    namespace: north-america
+    api_version: eventstreams.ibm.com/v1beta2
+    kind: KafkaMirrorMaker2
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+
+- name: Delete topics where the restore job was storing state
+  ansible.builtin.shell: oc delete -n north-america `oc get kafkatopic -n north-america -o name | grep mm2-restore`
+
+- name: Delete the topics where the restore job was storing offset info
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: absent
+    name: "{{ item.name }}"
+    namespace: north-america
+    api_version: eventstreams.ibm.com/v1beta2
+    kind: KafkaTopic
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: europe.checkpoints.internal
+    - name: mm2-offset-syncs.europe.internal
+
+- name: Delete the credentials used by the restore job
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: absent
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    api_version: eventstreams.ibm.com/v1beta2
+    kind: KafkaUser
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-northamerica-restore
+      namespace: north-america
+    - name: mm2-europe-restore
+      namespace: europe

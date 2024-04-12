@@ -1,0 +1,32 @@
+- name: Disable the backup Mirror Maker while restoring
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: eventstreams.ibm.com/v1beta2
+      kind: KafkaMirrorMaker2
+      metadata:
+        name: mm2-backup
+        namespace: europe
+      spec:
+        replicas: 0
+
+- name: Pause the producer application while topics are being recreated
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: eventstreams.ibm.com/v1beta2
+      kind: KafkaConnect
+      metadata:
+        name: datagen-host
+        namespace: south-america
+      spec:
+        replicas: 0
+
+- name: Pause the consumer application while topics are being recreated
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: consumer-southamerica
+        namespace: south-america
+      spec:
+        replicas: 0

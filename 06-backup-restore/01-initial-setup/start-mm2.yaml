@@ -1,0 +1,69 @@
+- name: Create credentials for Mirror Maker 2 to use to access the primary clusters
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    template: "{{ playbook_dir }}/01-initial-setup/templates/{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-northamerica-backup
+      namespace: north-america
+      template: mm2-backup-user-na.yaml
+
+- name: Create credentials for Mirror Maker 2 to use to access the backup cluster
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    template: "{{ playbook_dir }}/01-initial-setup/templates/{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-europe-backup
+      namespace: europe
+      template: mm2-backup-user-eu.yaml
+
+- name: Copy secrets to the backup cluster for use by Mirror Maker 2
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "{{ item.secret }}"
+    origin: "{{ item.origin }}"
+    destination: "{{ item.destination }}"
+  loop:
+    - reason: password
+      secret: mm2-northamerica-backup
+      origin: north-america
+      destination: europe
+    - reason: truststore
+      secret: na-eventstreams-cluster-ca-cert
+      origin: north-america
+      destination: europe
+
+- name: Create backup topics
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: europe
+    template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
+  vars:
+    es_cluster: eu-eventstreams
+
+- name: Start Mirror Maker 2 backup process
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    template: "{{ playbook_dir }}/01-initial-setup/templates/mm2-backup.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200

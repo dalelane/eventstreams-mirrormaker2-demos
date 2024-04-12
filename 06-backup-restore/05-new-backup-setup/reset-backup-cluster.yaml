@@ -1,0 +1,37 @@
+- name: Delete the backup topics so they can be recreated
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: absent
+    namespace: europe
+    template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
+  vars:
+    es_cluster: eu-eventstreams
+
+- name: Delete the topics where the backup job stored it's state to let it restart
+  ansible.builtin.shell: oc delete -n europe `oc get kafkatopic -n europe -o name | grep mm2-backup`
+
+- name: Delete the topics where the backup job stored offset info to let it restart
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: absent
+    name: "{{ item.name }}"
+    namespace: europe
+    api_version: eventstreams.ibm.com/v1beta2
+    kind: KafkaTopic
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: northamerica.checkpoints.internal
+    - name: mm2-offset-syncs.northamerica.internal
+
+- name: Recreate the backup topics
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: north-america
+    template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
+  vars:
+    es_cluster: na-eventstreams

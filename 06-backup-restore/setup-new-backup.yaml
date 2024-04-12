@@ -1,0 +1,19 @@
+---
+- name: Backup / restore - setup a new backup for the restored cluster
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Reset the backup cluster so a fresh backup can be started
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/05-new-backup-setup/reset-backup-cluster.yaml"
+
+    - name: Restart the backup Mirror Maker so it can create a new backup
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: eventstreams.ibm.com/v1beta2
+          kind: KafkaMirrorMaker2
+          metadata:
+            name: mm2-backup
+            namespace: europe
+          spec:
+            replicas: 1

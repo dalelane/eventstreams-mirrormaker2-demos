@@ -1,0 +1,157 @@
+kind: KafkaMirrorMaker2
+apiVersion: eventstreams.ibm.com/v1beta2
+metadata:
+  name: mm2-restore
+  namespace: north-america
+spec:
+
+  # where to run Mirror Maker
+  connectCluster: northamerica
+
+
+  ##################################################
+  # SPECIFY THE MIRRORS TO RUN
+  ##################################################
+  mirrors:
+    #-----------------------------------------
+    # Europe -> North America
+    #-----------------------------------------
+    - sourceCluster: europe
+      targetCluster: northamerica
+      #
+      # mirror the messages on the "Loosehanger" topics ("LH")
+      #
+      topicsPattern: LH.*
+      sourceConnector:
+        config:
+          # no need to check for new topics - as we know that
+          #  no new topics will be created on the backup cluster
+          #  during the restore process
+          refresh.topics.enabled: false
+
+          # replication factor to use for created topics
+          replication.factor: 3
+
+          # match the names of topics in the target cluster to the
+          #  name of the topics in the source cluster
+          replication.policy.class: org.apache.kafka.connect.mirror.IdentityReplicationPolicy
+
+          # use the target cluster to store the offset mapping information
+          offset-syncs.topic.location: target
+          # config for offset-syncs topic
+          offset-syncs.topic.replication.factor: 3
+          # need to restore everything
+          offset.lag.max: 1
+
+          # don't try to mirror the ACL's, as we will use the
+          #  User Operator for this
+          sync.topic.acls.enabled: false
+
+          # no need to sync config changes to topics as we know
+          #  that no topic config changes will be made during the
+          #  restore process
+          sync.topic.configs.enabled: false
+      #
+      # mirror consumer group offsets
+      #
+      # pattern for names of consumer groups to sync
+      groupsPattern: consumer-.*
+      checkpointConnector:
+        config:
+          # sync consumer offsets to the target cluster's __consumer_offsets topic
+          emit.checkpoints.enabled : true
+          sync.group.offsets.enabled: true
+
+          # sync consumer offsets every minute
+          emit.checkpoints.interval.seconds: 60
+          sync.group.offsets.interval.seconds: 60
+
+          # no need to check for new consumer groups as no applications
+          #  connect to the backup cluster
+          refresh.groups.enabled: false
+
+          # match the names of topics in the target cluster to the
+          #  name of the topics in the source cluster
+          replication.policy.class: org.apache.kafka.connect.mirror.IdentityReplicationPolicy
+
+          # use the target cluster to store the offset mapping information
+          offset-syncs.topic.location: target
+
+          # config for checkpoints topic
+          checkpoints.topic.replication.factor: 3
+
+
+
+  ##################################################
+  # DEFINE THE KAFKA CLUSTERS TO USE FOR MIRRORING
+  ##################################################
+  clusters:
+    #-----------------------------------------
+    # North American region
+    #-----------------------------------------
+    - alias: northamerica
+      bootstrapServers: na-eventstreams-kafka-bootstrap.north-america.svc:9098
+      authentication:
+        username: mm2-northamerica-restore
+        passwordSecret:
+          password: password
+          secretName: mm2-northamerica-restore
+        type: scram-sha-512
+      config:
+        # avoid mirroring duplicate events on restarts or errors
+        exactly.once.source.support: enabled
+        # identities for resources that MM2 will create for internal use
+        group.id: mm2-restore
+        status.storage.topic: __mm2_restore_status
+        offset.storage.topic: __mm2_restore_offsets
+        config.storage.topic: __mm2_restore_configs
+        status.storage.replication.factor: 3
+        config.storage.replication.factor: 3
+        offset.storage.replication.factor: 3
+        key.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+        value.converter: org.apache.kafka.connect.converters.ByteArrayConverter
+      tls:
+        trustedCertificates:
+          - certificate: ca.crt
+            secretName: na-eventstreams-cluster-ca-cert
+    #-----------------------------------------
+    # European region
+    #-----------------------------------------
+    - alias: europe
+      bootstrapServers: eu-eventstreams-kafka-bootstrap.europe.svc:9098
+      authentication:
+        username: mm2-europe-restore
+        passwordSecret:
+          password: password
+          secretName: mm2-europe-restore
+        type: scram-sha-512
+      tls:
+        trustedCertificates:
+          - certificate: ca.crt
+            secretName: eu-eventstreams-cluster-ca-cert
+
+
+  #-----------------------------------------
+  # spec for the Mirror Maker pod
+  #-----------------------------------------
+  replicas: 1
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 2Gi
+    limits:
+      cpu: 2000m
+      memory: 2Gi
+  template:
+    pod:
+      metadata:
+        annotations:
+          cloudpakId: c8b82d189e7545f0892db9ef2731b90d
+          productVersion: 11.3.1
+          productID: 2a79e49111f44ec3acd89608e56138f5
+          cloudpakName: IBM Cloud Pak for Integration
+          productChargedContainers: mm2-restore-mirrormaker2
+          productCloudpakRatio: '2:1'
+          productName: IBM Event Streams for Non Production
+          eventstreams.production.type: CloudPakForIntegrationNonProduction
+          productMetric: VIRTUAL_PROCESSOR_CORE

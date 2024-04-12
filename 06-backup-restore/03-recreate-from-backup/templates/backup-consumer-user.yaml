@@ -1,0 +1,32 @@
+apiVersion: eventstreams.ibm.com/v1beta2
+kind: KafkaUser
+metadata:
+  name: consumer-southamerica
+  labels:
+    eventstreams.ibm.com/cluster: na-eventstreams
+spec:
+  authentication:
+    type: scram-sha-512
+    # restore the password from before the loss of the
+    #  primary cluster, to allow applications to
+    #  resume without reconfiguration
+    password:
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: backup-na-consumer-southamerica
+  authorization:
+    type: simple
+    acls:
+      - operations:
+          - Read
+        resource:
+          name: LH.
+          type: topic
+          patternType: prefix
+      - operations:
+          - Read
+        resource:
+          name: consumer-southamerica
+          patternType: literal
+          type: group

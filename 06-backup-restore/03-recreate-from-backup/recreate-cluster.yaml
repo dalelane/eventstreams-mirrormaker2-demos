@@ -1,0 +1,116 @@
+- name: Recreate region namespace
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/create-regions/create-namespace.yaml"
+  vars:
+    namespace: north-america
+
+- name: Restore certificates from the backup
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "backup-na-{{ item.secret }}"
+    origin: south-america
+    new_secret: "{{ item.secret }}"
+    destination: north-america
+  loop:
+    - secret: na-eventstreams-cluster-ca-cert
+    - secret: na-eventstreams-clients-ca-cert
+    - secret: na-eventstreams-cluster-ca
+    - secret: na-eventstreams-clients-ca
+
+- name: Add annotations required to use secrets as certificates
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ item.name }}"
+        namespace: north-america
+        annotations:
+          eventstreams.ibm.com/ca-cert-generation: "0"
+        labels:
+          app.kubernetes.io/instance: na-eventstreams
+          app.kubernetes.io/managed-by: eventstreams-cluster-operator
+          app.kubernetes.io/name: certificate-authority
+          app.kubernetes.io/part-of: eventstreams-na-eventstreams
+          eventstreams.ibm.com/cluster: na-eventstreams
+          eventstreams.ibm.com/component-type: certificate-authority
+          eventstreams.ibm.com/kind: Kafka
+          eventstreams.ibm.com/name: eventstreams
+  loop:
+    - name: na-eventstreams-cluster-ca-cert
+    - name: na-eventstreams-clients-ca-cert
+
+- name: Add annotations required to use secrets as keys
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ item.name }}"
+        namespace: north-america
+        annotations:
+          eventstreams.ibm.com/ca-key-generation: "0"
+        labels:
+          app.kubernetes.io/instance: na-eventstreams
+          app.kubernetes.io/managed-by: eventstreams-cluster-operator
+          app.kubernetes.io/name: certificate-authority
+          app.kubernetes.io/part-of: eventstreams-na-eventstreams
+          eventstreams.ibm.com/cluster: na-eventstreams
+          eventstreams.ibm.com/component-type: certificate-authority
+          eventstreams.ibm.com/kind: Kafka
+          eventstreams.ibm.com/name: eventstreams
+  loop:
+    - name: na-eventstreams-cluster-ca
+    - name: na-eventstreams-clients-ca
+
+- name: Recreate Event Streams cluster
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: na-eventstreams
+    namespace: north-america
+    template: "{{ playbook_dir }}/03-recreate-from-backup/templates/backup-es-instance.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+
+- name: Restore passwords from the backup
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "backup-na-{{ item.secret }}"
+    origin: south-america
+    destination: north-america
+  loop:
+    - secret: es-admin
+    - secret: consumer-southamerica
+    - secret: producer-credentials
+    - secret: mm2-northamerica-backup
+
+- name: Restore Event Streams passwords
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: north-america
+    template: "{{ playbook_dir }}/03-recreate-from-backup/templates/{{ item.file }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  vars:
+    es_cluster: na-eventstreams
+  loop:
+    - file: backup-ui-user.yaml
+    - file: backup-consumer-user.yaml
+    - file: backup-producer-user.yaml
+    - file: backup-mm2-user-na.yaml
+
+- name: Recreate the topics
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: north-america
+    template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
+  vars:
+    es_cluster: na-eventstreams

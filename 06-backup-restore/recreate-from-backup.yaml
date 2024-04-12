@@ -1,0 +1,25 @@
+---
+- name: Backup / restore - restore the cluster from backup
+  hosts: localhost
+  connection: local
+  # vars:
+  #   ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
+  #   storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
+
+  tasks:
+    - name: Check for required variables
+      fail:
+        msg: "Required variable {{item}} has not been provided"
+      when: vars[item] is undefined
+      loop:
+        - ibm_entitlement_key
+        - storage_class
+
+    - name: Pause everything using the cluster while the cluster is being restored
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/03-recreate-from-backup/pause-everything.yaml"
+
+    - name: Recreate the cluster from the backup specification
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/03-recreate-from-backup/recreate-cluster.yaml"
+
+    - name: Restore events from the backup cluster
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/03-recreate-from-backup/start-mm2.yaml"

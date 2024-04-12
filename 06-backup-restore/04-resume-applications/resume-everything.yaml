@@ -1,0 +1,21 @@
+- name: Resume the producer application using the now-restored cluster
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: eventstreams.ibm.com/v1beta2
+      kind: KafkaConnect
+      metadata:
+        name: datagen-host
+        namespace: south-america
+      spec:
+        replicas: 1
+
+- name: Resume the consumer application using the now-restored cluster
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: consumer-southamerica
+        namespace: south-america
+      spec:
+        replicas: 1
