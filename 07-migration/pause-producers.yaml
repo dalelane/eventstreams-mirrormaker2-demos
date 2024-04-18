@@ -1,0 +1,16 @@
+---
+- name: Migration - pause producers
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Pause the producer application while topics are being recreated
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: eventstreams.ibm.com/v1beta2
+          kind: KafkaConnect
+          metadata:
+            name: datagen-host
+            namespace: south-america
+          spec:
+            replicas: 0

@@ -1,0 +1,118 @@
+---
+
+- name: Copy passwords for use in migrated cluster
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "{{ item.secret }}"
+    origin: north-america
+    new_secret: "migrated-{{ item.secret }}"
+    destination: europe
+  loop:
+    - secret: es-admin
+    - secret: consumer-southamerica
+    - secret: producer-credentials
+
+
+- name: Copy certificates for use in migrated cluster
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "na-eventstreams-{{ item.secret }}"
+    origin: north-america
+    new_secret: "eu-eventstreams-{{ item.secret }}"
+    destination: europe
+  loop:
+    - secret: cluster-ca-cert
+    - secret: clients-ca-cert
+    - secret: cluster-ca
+    - secret: clients-ca
+
+
+- name: Add annotations required to use secrets as certificates
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ item.name }}"
+        namespace: europe
+        annotations:
+          eventstreams.ibm.com/ca-cert-generation: "0"
+        labels:
+          app.kubernetes.io/instance: eu-eventstreams
+          app.kubernetes.io/managed-by: eventstreams-cluster-operator
+          app.kubernetes.io/name: certificate-authority
+          app.kubernetes.io/part-of: eventstreams-eu-eventstreams
+          eventstreams.ibm.com/cluster: eu-eventstreams
+          eventstreams.ibm.com/component-type: certificate-authority
+          eventstreams.ibm.com/kind: Kafka
+          eventstreams.ibm.com/name: eventstreams
+  loop:
+    - name: eu-eventstreams-cluster-ca-cert
+    - name: eu-eventstreams-clients-ca-cert
+
+
+- name: Add annotations required to use secrets as keys
+  kubernetes.core.k8s:
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: "{{ item.name }}"
+        namespace: europe
+        annotations:
+          eventstreams.ibm.com/ca-key-generation: "0"
+        labels:
+          app.kubernetes.io/instance: eu-eventstreams
+          app.kubernetes.io/managed-by: eventstreams-cluster-operator
+          app.kubernetes.io/name: certificate-authority
+          app.kubernetes.io/part-of: eventstreams-eu-eventstreams
+          eventstreams.ibm.com/cluster: eu-eventstreams
+          eventstreams.ibm.com/component-type: certificate-authority
+          eventstreams.ibm.com/kind: Kafka
+          eventstreams.ibm.com/name: eventstreams
+  loop:
+    - name: eu-eventstreams-cluster-ca
+    - name: eu-eventstreams-clients-ca
+
+
+- name: Create migration Event Streams cluster
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: na-eventstreams
+    namespace: europe
+    template: "{{ playbook_dir }}/02-migrate-topics/templates/es-instance.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+
+
+- name: Migrate application passwords
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: europe
+    template: "{{ playbook_dir }}/02-migrate-topics/templates/{{ item.file }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  vars:
+    es_cluster: eu-eventstreams
+  loop:
+    - file: ui-user.yaml
+    - file: consumer-user.yaml
+    - file: producer-user.yaml
+
+
+- name: Create migrated topics
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: europe
+    template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
+  vars:
+    es_cluster: eu-eventstreams

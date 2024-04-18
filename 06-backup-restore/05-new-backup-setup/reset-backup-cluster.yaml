@@ -7,7 +7,7 @@
   vars:
     es_cluster: eu-eventstreams
 
-- name: Delete the topics where the backup job stored it's state to let it restart
+- name: Delete the topics where the backup job stored state to let it restart
   ansible.builtin.shell: oc delete -n europe `oc get kafkatopic -n europe -o name | grep mm2-backup`
 
 - name: Delete the topics where the backup job stored offset info to let it restart

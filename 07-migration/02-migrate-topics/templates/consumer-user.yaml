@@ -1,0 +1,32 @@
+apiVersion: eventstreams.ibm.com/v1beta2
+kind: KafkaUser
+metadata:
+  name: consumer-southamerica
+  labels:
+    eventstreams.ibm.com/cluster: eu-eventstreams
+spec:
+  authentication:
+    type: scram-sha-512
+    # reuse the password from the primary cluster, to allow
+    #  applications to resume without reconfiguration
+    #  after the migration is complete
+    password:
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: migrated-consumer-southamerica
+  authorization:
+    type: simple
+    acls:
+      - operations:
+          - Read
+        resource:
+          name: LH.
+          type: topic
+          patternType: prefix
+      - operations:
+          - Read
+        resource:
+          name: consumer-southamerica
+          patternType: literal
+          type: group

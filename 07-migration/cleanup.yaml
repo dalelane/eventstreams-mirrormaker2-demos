@@ -1,0 +1,52 @@
+---
+- name: Migration - remove old cluster and migration resources
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Delete old region
+      kubernetes.core.k8s:
+        validate_certs: false
+        state: absent
+        name: north-america
+        api_version: project.openshift.io/v1
+        kind: Project
+        wait: true
+        wait_condition:
+          status: true
+          type: Ready
+        wait_timeout: 1200
+
+    - name: Delete topics where the migration job stored offset info
+      kubernetes.core.k8s:
+        validate_certs: false
+        state: absent
+        name: "{{ item.name }}"
+        namespace: europe
+        api_version: eventstreams.ibm.com/v1beta2
+        kind: KafkaTopic
+        wait: true
+        wait_condition:
+          status: true
+          type: Ready
+        wait_timeout: 1200
+      loop:
+        - name: northamerica.checkpoints.internal
+        - name: mm2-offset-syncs.northamerica.internal
+
+    - name: Delete topics where the migration job stored state
+      ansible.builtin.shell: oc delete -n europe `oc get kafkatopic -n europe -o name | grep mm2-`
+
+    - name: Delete credentials that were used by the migration job
+      kubernetes.core.k8s:
+        validate_certs: false
+        state: absent
+        name: mm2-europe
+        namespace: europe
+        api_version: eventstreams.ibm.com/v1beta2
+        kind: KafkaUser
+        wait: true
+        wait_condition:
+          status: true
+          type: Ready
+        wait_timeout: 1200

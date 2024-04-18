@@ -1,0 +1,19 @@
+---
+- name: Migration - migrate producers
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Migrate the producer application to the new cluster
+      kubernetes.core.k8s:
+        definition:
+          apiVersion: eventstreams.ibm.com/v1beta2
+          kind: KafkaConnect
+          metadata:
+            name: datagen-host
+            namespace: south-america
+          spec:
+            # resume the application as it was paused during migration
+            replicas: 1
+            # reconnect to the migrated cluster using the new bootstrap address
+            bootstrapServers: 'eu-eventstreams-kafka-bootstrap.europe.svc:9098'

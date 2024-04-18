@@ -1,0 +1,45 @@
+apiVersion: eventstreams.ibm.com/v1beta2
+kind: KafkaUser
+metadata:
+  name: es-admin
+  labels:
+    app.kubernetes.io/instance: eu-eventstreams
+    eventstreams.ibm.com/cluster: eu-eventstreams
+spec:
+  authentication:
+    type: scram-sha-512
+    # reuse the password from the primary cluster, to allow
+    #  administrators to use the same credentials they already have
+    #  after the migration is complete
+    password:
+      valueFrom:
+        secretKeyRef:
+          key: password
+          name: migrated-es-admin
+  authorization:
+    type: simple
+    acls:
+      - operations:
+          - Alter
+          - DescribeConfigs
+        resource:
+          type: cluster
+      - operations:
+          - Create
+          - Read
+          - Write
+          - Delete
+          - DescribeConfigs
+          - Alter
+          - AlterConfigs
+        resource:
+          name: '*'
+          patternType: literal
+          type: topic
+      - operations:
+          - Read
+          - Delete
+        resource:
+          name: '*'
+          patternType: literal
+          type: group

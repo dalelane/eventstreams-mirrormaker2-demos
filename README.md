@@ -78,3 +78,23 @@ Example of how to run the playbooks:
 - [`setup-06-restore.sh`](./setup-06-restore.sh)
 - [`setup-06-resume.sh`](./setup-06-resume.sh)
 - [`setup-06-setup-new-backup.sh`](./setup-06-setup-new-backup.sh)
+
+## Using Mirror Maker 2 to migrate a Kafka cluster to a new region
+
+![diagram](./07-migration/01-initial-setup/diagram.png)
+
+Ansible playbooks:
+- [`07-migration/initial-setup.yaml`](./07-migration/initial-setup.yaml)
+- [`07-migration/migrate-topics.yaml`](./07-migration/migrate-topics.yaml)
+- [`07-migration/pause-producers.yaml`](./07-migration/pause-producers.yaml)
+- [`07-migration/migrate-consumers.yaml`](./07-migration/migrate-consumers.yaml)
+- [`07-migration/migrate-producers.yaml`](./07-migration/migrate-producers.yaml)
+- [`07-migration/cleanup.yaml`](./07-migration/cleanup.yaml)
+
+Example of how to run the playbooks:
+- [`setup-07-migration.sh`](./setup-07-migration.sh)
+- [`setup-07-migrate-topics.sh`](./setup-07-migrate-topics.sh)
+- [`setup-07-pause-producers.sh`](./setup-07-pause-producers.sh)
+- [`setup-07-migrate-consumers.sh`](./setup-07-migrate-consumers.sh)
+- [`setup-07-migrate-producers.sh`](./setup-07-migrate-producers.sh)
+- [`setup-07-cleanup.sh`](./setup-07-cleanup.sh)

@@ -1,0 +1,45 @@
+---
+- name: Migration - initial set up
+  hosts: localhost
+  connection: local
+  # vars:
+  #   ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
+  #   storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
+
+  tasks:
+    - name: Check for required variables
+      fail:
+        msg: "Required variable {{item}} has not been provided"
+      when: vars[item] is undefined
+      loop:
+        - ibm_entitlement_key
+        - storage_class
+
+    - name: Check for playbook pre-requisites
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/pre-reqs/playbook-prereqs.yaml"
+
+    - name: Install Event Streams
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/install-eventstreams/setup.yaml"
+
+    - name: Create the North America, South America, and Europe regions
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/01-initial-setup/create-regions.yaml"
+
+    - name: Start producer in the South American region, producing to Kafka in North America
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-producer/setup.yaml"
+      vars:
+        es_namespace: north-america
+        es_cluster: na-eventstreams
+        producer_namespace: south-america
+        region: SA
+        locations: "SãoPaulo,BuenosAires,Lima,Bogotá,LaPaz"
+
+    - name: Start consumer in the South American region, consuming from Kafka in North America
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-consumer/setup.yaml"
+      vars:
+        namespace: south-america
+        consumer: consumer-southamerica
+        user_template: "{{ playbook_dir }}/01-initial-setup/templates/consumer-user.yaml"
+        es_cluster: na-eventstreams
+        es_namespace: north-america
+        topics: !unsafe 'LH\\..*'
+

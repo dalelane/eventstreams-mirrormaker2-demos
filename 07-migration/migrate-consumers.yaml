@@ -1,0 +1,33 @@
+---
+- name: Migration - migrate consumers
+  hosts: localhost
+  connection: local
+
+  tasks:
+    - name: Copy truststore for use by the applications
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+      vars:
+        secret: eu-eventstreams-cluster-ca-cert
+        origin: europe
+        destination: south-america
+
+    - name: Migrate the consumer application to the new cluster
+      kubernetes.core.k8s:
+        validate_certs: false
+        state: present
+        namespace: europe
+        template: "{{ playbook_dir }}/../common/consumer/templates/consumer.yaml"
+      vars:
+        # these values have changed from before the migration
+        #  and are used to create the updated bootstrap address for
+        #  the migrated cluster
+        es_cluster: eu-eventstreams
+        es_namespace: europe
+        # these values are the same as before the migration, and
+        #  allow the consumer to resume from where it was before
+        #  the migration
+        name: consumer-southamerica
+        namespace: south-america
+        topics: !unsafe 'LH\\..*'
+        username: consumer-southamerica
+        consumer_group: consumer-southamerica

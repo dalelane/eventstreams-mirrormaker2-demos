@@ -1,0 +1,25 @@
+---
+- name: Migration - migrate topics
+  hosts: localhost
+  connection: local
+  # vars:
+  #   ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
+  #   storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
+
+  tasks:
+    - name: Check for required variables
+      fail:
+        msg: "Required variable {{item}} has not been provided"
+      when: vars[item] is undefined
+      loop:
+        - ibm_entitlement_key
+        - storage_class
+
+    - name: Check for playbook pre-requisites
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/pre-reqs/playbook-prereqs.yaml"
+
+    - name: Create Event Streams cluster to migrate to
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/02-migrate-topics/create-migration-target.yaml"
+
+    - name: Use Mirror Maker 2 to start migrating topics and events
+      ansible.builtin.include_tasks: "{{ playbook_dir }}/02-migrate-topics/start-mm2.yaml"

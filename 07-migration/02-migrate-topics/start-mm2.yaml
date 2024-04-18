@@ -1,0 +1,61 @@
+---
+
+- name: Create credentials for Mirror Maker 2 to use to access the current cluster
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    template: "{{ playbook_dir }}/02-migrate-topics/templates/{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-northamerica
+      namespace: north-america
+      template: mm2-user-na.yaml
+
+
+- name: Create credentials for Mirror Maker 2 to use to access the new cluster
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "{{ item.name }}"
+    namespace: "{{ item.namespace }}"
+    template: "{{ playbook_dir }}/02-migrate-topics/templates/{{ item.template }}"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
+  loop:
+    - name: mm2-europe
+      namespace: europe
+      template: mm2-user-eu.yaml
+
+
+- name: Copy secrets to the new cluster for use by Mirror Maker 2
+  ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
+  vars:
+    secret: "{{ item.secret }}"
+    origin: north-america
+    destination: europe
+  loop:
+    - reason: password
+      secret: mm2-northamerica
+    - reason: truststore
+      secret: na-eventstreams-cluster-ca-cert
+
+
+- name: Start Mirror Maker 2 migration process
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    template: "{{ playbook_dir }}/02-migrate-topics/templates/mm2.yaml"
+    wait: true
+    wait_condition:
+      status: true
+      type: Ready
+    wait_timeout: 1200
