@@ -20,8 +20,9 @@ fi
 # run the playbook
 ansible-playbook   \
     -e ansible_python_interpreter="$(pwd)/venv/bin/python3" \
-    -e ibm_entitlement_key=YOUR_IBM_ENTITLEMENT_KEY \
-    -e storage_class=STORAGE_CLASS_TO_USE_FOR_EVENT_STREAMS \
+    -e ibm_entitlement_key=$ENTITLEMENTKEY \
+    -e storage_class=ocs-storagecluster-ceph-rbd \
+    -e namespace_prefix="student01-" \
     01-aggregate-central/setup.yaml
 
 # display URL and username/password for each Event Streams cluster

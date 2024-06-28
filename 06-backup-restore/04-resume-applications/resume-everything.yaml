@@ -5,7 +5,7 @@
       kind: KafkaConnect
       metadata:
         name: datagen-host
-        namespace: south-america
+        namespace: "{{ namespace_prefix }}south-america"
       spec:
         replicas: 1
 
@@ -16,6 +16,6 @@
       kind: Deployment
       metadata:
         name: consumer-southamerica
-        namespace: south-america
+        namespace: "{{ namespace_prefix }}south-america"
       spec:
         replicas: 1

@@ -8,14 +8,14 @@
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
       vars:
         secret: eu-eventstreams-cluster-ca-cert
-        origin: europe
-        destination: south-america
+        origin: "{{ namespace_prefix }}europe"
+        destination: "{{ namespace_prefix }}south-america"
 
     - name: Migrate the consumer application to the new cluster
       kubernetes.core.k8s:
         validate_certs: false
         state: present
-        namespace: europe
+        namespace: "{{ namespace_prefix }}europe"
         template: "{{ playbook_dir }}/../common/consumer/templates/consumer.yaml"
       vars:
         # these values have changed from before the migration

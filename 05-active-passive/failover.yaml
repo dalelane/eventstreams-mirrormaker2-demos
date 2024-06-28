@@ -11,7 +11,7 @@
           kind: KafkaMirrorMaker2
           metadata:
             name: mm2
-            namespace: europe
+            namespace: "{{ namespace_prefix }}europe"
           spec:
             replicas: 0
 
@@ -19,8 +19,8 @@
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-consumer/failover.yaml"
       vars:
         es_cluster: eu-eventstreams
-        es_namespace: europe
-        namespace: south-america
+        es_namespace: "{{ namespace_prefix }}europe"
+        namespace: "{{ namespace_prefix }}south-america"
         consumer: consumer-southamerica
         user_template: "{{ playbook_dir }}/templates/consumer-user.yaml"
         topics: !unsafe 'LH\\..*'
@@ -29,5 +29,5 @@
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-producer/failover.yaml"
       vars:
         es_cluster: eu-eventstreams
-        es_namespace: europe
-        producer_namespace: south-america
+        es_namespace: "{{ namespace_prefix }}europe"
+        producer_namespace: "{{ namespace_prefix }}south-america"

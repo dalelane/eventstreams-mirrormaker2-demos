@@ -4,9 +4,9 @@
   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
   vars:
     secret: "{{ item.secret }}"
-    origin: north-america
+    origin: "{{ namespace_prefix }}north-america"
     new_secret: "migrated-{{ item.secret }}"
-    destination: europe
+    destination: "{{ namespace_prefix }}europe"
   loop:
     - secret: es-admin
     - secret: consumer-southamerica
@@ -17,9 +17,9 @@
   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
   vars:
     secret: "na-eventstreams-{{ item.secret }}"
-    origin: north-america
+    origin: "{{ namespace_prefix }}north-america"
     new_secret: "eu-eventstreams-{{ item.secret }}"
-    destination: europe
+    destination: "{{ namespace_prefix }}europe"
   loop:
     - secret: cluster-ca-cert
     - secret: clients-ca-cert
@@ -34,7 +34,7 @@
       kind: Secret
       metadata:
         name: "{{ item.name }}"
-        namespace: europe
+        namespace: "{{ namespace_prefix }}europe"
         annotations:
           eventstreams.ibm.com/ca-cert-generation: "0"
         labels:
@@ -58,7 +58,7 @@
       kind: Secret
       metadata:
         name: "{{ item.name }}"
-        namespace: europe
+        namespace: "{{ namespace_prefix }}europe"
         annotations:
           eventstreams.ibm.com/ca-key-generation: "0"
         labels:
@@ -80,7 +80,7 @@
     validate_certs: false
     state: present
     name: na-eventstreams
-    namespace: europe
+    namespace: "{{ namespace_prefix }}europe"
     template: "{{ playbook_dir }}/02-migrate-topics/templates/es-instance.yaml"
     wait: true
     wait_condition:
@@ -93,7 +93,7 @@
   kubernetes.core.k8s:
     validate_certs: false
     state: present
-    namespace: europe
+    namespace: "{{ namespace_prefix }}europe"
     template: "{{ playbook_dir }}/02-migrate-topics/templates/{{ item.file }}"
     wait: true
     wait_condition:
@@ -112,7 +112,7 @@
   kubernetes.core.k8s:
     validate_certs: false
     state: present
-    namespace: europe
+    namespace: "{{ namespace_prefix }}europe"
     template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
   vars:
     es_cluster: eu-eventstreams

@@ -14,6 +14,6 @@
           kind: KafkaMirrorMaker2
           metadata:
             name: mm2-backup
-            namespace: europe
+            namespace: "{{ namespace_prefix }}europe"
           spec:
             replicas: 1

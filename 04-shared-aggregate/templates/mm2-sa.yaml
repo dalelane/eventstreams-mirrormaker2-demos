@@ -2,7 +2,7 @@ kind: KafkaMirrorMaker2
 apiVersion: eventstreams.ibm.com/v1beta2
 metadata:
   name: mm2-sa
-  namespace: south-america
+  # namespace: south-america
 spec:
 
   # which cluster to use to store Mirror Maker internal data
@@ -93,7 +93,7 @@ spec:
     # North American region
     #-----------------------------------------
     - alias: northamerica
-      bootstrapServers: na-eventstreams-kafka-bootstrap.north-america.svc:9098
+      bootstrapServers: na-eventstreams-kafka-bootstrap.{{ namespace_prefix }}north-america.svc:9098
       authentication:
         username: mm2-northamerica
         passwordSecret:
@@ -108,7 +108,7 @@ spec:
     # South American region
     #-----------------------------------------
     - alias: southamerica
-      bootstrapServers: sa-eventstreams-kafka-bootstrap.south-america.svc:9098
+      bootstrapServers: sa-eventstreams-kafka-bootstrap.{{ namespace_prefix }}south-america.svc:9098
       authentication:
         username: mm2-southamerica
         passwordSecret:
@@ -133,7 +133,7 @@ spec:
     # European region
     #-----------------------------------------
     - alias: europe
-      bootstrapServers: eu-eventstreams-kafka-bootstrap.europe.svc:9098
+      bootstrapServers: eu-eventstreams-kafka-bootstrap.{{ namespace_prefix }}europe.svc:9098
       authentication:
         username: mm2-europe
         passwordSecret:

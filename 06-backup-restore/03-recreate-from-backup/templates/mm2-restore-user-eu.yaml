@@ -2,7 +2,7 @@ apiVersion: eventstreams.ibm.com/v1beta2
 kind: KafkaUser
 metadata:
   name: mm2-europe-restore
-  namespace: europe
+  # namespace: europe
   labels:
     eventstreams.ibm.com/cluster: eu-eventstreams
 spec:

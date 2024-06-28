@@ -2,7 +2,7 @@
   kubernetes.core.k8s:
     validate_certs: false
     state: absent
-    namespace: europe
+    namespace: "{{ namespace_prefix }}europe"
     template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
   vars:
     es_cluster: eu-eventstreams
@@ -15,7 +15,7 @@
     validate_certs: false
     state: absent
     name: "{{ item.name }}"
-    namespace: europe
+    namespace: "{{ namespace_prefix }}europe"
     api_version: eventstreams.ibm.com/v1beta2
     kind: KafkaTopic
     wait: true
@@ -31,7 +31,7 @@
   kubernetes.core.k8s:
     validate_certs: false
     state: present
-    namespace: north-america
+    namespace: "{{ namespace_prefix }}north-america"
     template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
   vars:
     es_cluster: na-eventstreams

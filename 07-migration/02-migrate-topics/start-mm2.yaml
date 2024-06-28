@@ -5,7 +5,7 @@
     validate_certs: false
     state: present
     name: "{{ item.name }}"
-    namespace: "{{ item.namespace }}"
+    namespace: "{{ namespace_prefix }}{{ item.namespace }}"
     template: "{{ playbook_dir }}/02-migrate-topics/templates/{{ item.template }}"
     wait: true
     wait_condition:
@@ -23,7 +23,7 @@
     validate_certs: false
     state: present
     name: "{{ item.name }}"
-    namespace: "{{ item.namespace }}"
+    namespace: "{{ namespace_prefix }}{{ item.namespace }}"
     template: "{{ playbook_dir }}/02-migrate-topics/templates/{{ item.template }}"
     wait: true
     wait_condition:
@@ -40,8 +40,8 @@
   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
   vars:
     secret: "{{ item.secret }}"
-    origin: north-america
-    destination: europe
+    origin: "{{ namespace_prefix }}north-america"
+    destination: "{{ namespace_prefix }}europe"
   loop:
     - reason: password
       secret: mm2-northamerica
@@ -54,6 +54,7 @@
     validate_certs: false
     state: present
     template: "{{ playbook_dir }}/02-migrate-topics/templates/mm2.yaml"
+    namespace: "{{ namespace_prefix }}europe"
     wait: true
     wait_condition:
       status: true

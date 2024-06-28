@@ -5,6 +5,7 @@
   # vars:
   #   ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
   #   storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
+  #   namespace_prefix: "{{ undef(hint='Specify a prefix to use for namespace names')}}"
 
   tasks:
     - name: Check for required variables
@@ -14,6 +15,7 @@
       loop:
         - ibm_entitlement_key
         - storage_class
+        - namespace_prefix
 
     - name: Check for playbook pre-requisites
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/pre-reqs/playbook-prereqs.yaml"
@@ -27,20 +29,20 @@
     - name: Start producer in the South American region, producing to Kafka in North America
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-producer/setup.yaml"
       vars:
-        es_namespace: north-america
+        es_namespace: "{{ namespace_prefix }}north-america"
         es_cluster: na-eventstreams
-        producer_namespace: south-america
+        producer_namespace: "{{ namespace_prefix }}south-america"
         region: SA
         locations: "SãoPaulo,BuenosAires,Lima,Bogotá,LaPaz"
 
     - name: Start consumer in the South American region, consuming from Kafka in North America
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/remote-consumer/setup.yaml"
       vars:
-        namespace: south-america
+        namespace: "{{ namespace_prefix }}south-america"
         consumer: consumer-southamerica
         user_template: "{{ playbook_dir }}/01-initial-setup/templates/consumer-user.yaml"
         es_cluster: na-eventstreams
-        es_namespace: north-america
+        es_namespace: "{{ namespace_prefix }}north-america"
         topics: !unsafe 'LH\\..*'
 
     - name: Use Mirror Maker 2 to backup events
@@ -50,9 +52,9 @@
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
       vars:
         secret: "{{ item.secret }}"
-        origin: north-america
+        origin: "{{ namespace_prefix }}north-america"
         new_secret: "backup-na-{{ item.secret }}"
-        destination: south-america
+        destination: "{{ namespace_prefix }}south-america"
       loop:
         - secret: es-admin
         - secret: consumer-southamerica

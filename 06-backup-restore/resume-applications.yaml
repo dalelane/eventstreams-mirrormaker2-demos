@@ -5,6 +5,7 @@
   # vars:
   #   ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
   #   storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
+  #   namespace_prefix: "{{ undef(hint='Specify a prefix to use for namespace names')}}"
 
   tasks:
     - name: Remove the Mirror Maker 2 job used to restore events

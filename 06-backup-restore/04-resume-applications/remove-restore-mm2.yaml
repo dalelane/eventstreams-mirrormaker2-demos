@@ -3,7 +3,7 @@
     validate_certs: false
     state: absent
     name: mm2-restore
-    namespace: north-america
+    namespace: "{{ namespace_prefix }}north-america"
     api_version: eventstreams.ibm.com/v1beta2
     kind: KafkaMirrorMaker2
     wait: true
@@ -20,7 +20,7 @@
     validate_certs: false
     state: absent
     name: "{{ item.name }}"
-    namespace: north-america
+    namespace: "{{ namespace_prefix }}north-america"
     api_version: eventstreams.ibm.com/v1beta2
     kind: KafkaTopic
     wait: true
@@ -37,7 +37,7 @@
     validate_certs: false
     state: absent
     name: "{{ item.name }}"
-    namespace: "{{ item.namespace }}"
+    namespace: "{{ namespace_prefix }}{{ item.namespace }}"
     api_version: eventstreams.ibm.com/v1beta2
     kind: KafkaUser
     wait: true

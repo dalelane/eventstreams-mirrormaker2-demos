@@ -3,7 +3,7 @@
 - name: Create namespaces
   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/create-regions/create-namespace.yaml"
   vars:
-    namespace: "{{ item }}"
+    namespace: "{{ namespace_prefix }}{{ item }}"
   loop:
     - north-america
     - south-america
@@ -12,7 +12,7 @@
 - name: Create Event Streams clusters
   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/create-regions/create-cluster.yaml"
   vars:
-    namespace: "{{ item.namespace }}"
+    namespace: "{{ namespace_prefix }}{{ item.namespace }}"
     es_cluster: "{{ item.es_cluster }}"
   loop:
     - namespace: north-america

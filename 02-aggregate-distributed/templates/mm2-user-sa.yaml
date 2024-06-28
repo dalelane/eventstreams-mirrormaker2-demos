@@ -2,7 +2,7 @@ apiVersion: eventstreams.ibm.com/v1beta2
 kind: KafkaUser
 metadata:
   name: mm2-southamerica
-  namespace: south-america
+  # namespace: south-america
   labels:
     eventstreams.ibm.com/cluster: sa-eventstreams
 spec:

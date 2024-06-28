@@ -2,7 +2,7 @@ apiVersion: eventstreams.ibm.com/v1beta2
 kind: KafkaUser
 metadata:
   name: mm2-northamerica-backup
-  namespace: north-america
+  # namespace: north-america
   labels:
     eventstreams.ibm.com/cluster: na-eventstreams
 spec:

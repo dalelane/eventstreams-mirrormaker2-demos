@@ -8,7 +8,7 @@
       kubernetes.core.k8s:
         validate_certs: false
         state: absent
-        name: north-america
+        name: "{{ namespace_prefix }}north-america"
         api_version: project.openshift.io/v1
         kind: Project
         wait: true
@@ -22,7 +22,7 @@
         validate_certs: false
         state: absent
         name: "{{ item.name }}"
-        namespace: europe
+        namespace: "{{ namespace_prefix }}europe"
         api_version: eventstreams.ibm.com/v1beta2
         kind: KafkaTopic
         wait: true
@@ -35,14 +35,14 @@
         - name: mm2-offset-syncs.northamerica.internal
 
     - name: Delete topics where the migration job stored state
-      ansible.builtin.shell: oc delete -n europe `oc get kafkatopic -n europe -o name | grep mm2-`
+      ansible.builtin.shell: oc delete -n {{ namespace_prefix }}europe `oc get kafkatopic -n {{ namespace_prefix }}europe -o name | grep mm2-`
 
     - name: Delete credentials that were used by the migration job
       kubernetes.core.k8s:
         validate_certs: false
         state: absent
         name: mm2-europe
-        namespace: europe
+        namespace: "{{ namespace_prefix }}europe"
         api_version: eventstreams.ibm.com/v1beta2
         kind: KafkaUser
         wait: true

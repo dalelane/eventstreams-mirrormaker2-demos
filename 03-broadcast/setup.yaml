@@ -5,6 +5,7 @@
   # vars:
   #   ibm_entitlement_key: "{{ undef(hint='Provide an Entitled Registry key') }}"
   #   storage_class: "{{ undef(hint='Provide the storage class to use for Event Streams')}}"
+  #   namespace_prefix: "{{ undef(hint='Specify a prefix to use for namespace names')}}"
 
   tasks:
     - name: Check for required variables
@@ -14,6 +15,7 @@
       loop:
         - ibm_entitlement_key
         - storage_class
+        - namespace_prefix
 
     - name: Check for playbook pre-requisites
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/pre-reqs/playbook-prereqs.yaml"
@@ -27,7 +29,7 @@
     - name: Start producer in the European region
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/producer/setup.yaml"
       vars:
-        namespace: europe
+        namespace: "{{ namespace_prefix }}europe"
         es_cluster: eu-eventstreams
         region: EU
         locations: "Antwerp,Rotterdam,Dusseldorf,Brussels,Hamburg"
@@ -38,11 +40,11 @@
     - name: Start consumers in North America and South America regions
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/consumer/setup.yaml"
       vars:
-        namespace: "{{ item.namespace }}"
+        namespace: "{{ namespace_prefix }}{{ item.namespace }}"
         consumer: "{{ item.consumer }}"
         user_template: "{{ item.user_template }}"
         es_cluster: "{{ item.es_cluster }}"
-        es_namespace: "{{ item.es_namespace }}"
+        es_namespace: "{{ namespace_prefix }}{{ item.es_namespace }}"
         topics: "{{ item.topics }}"
       loop:
         - namespace: north-america

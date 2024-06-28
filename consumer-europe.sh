@@ -1,3 +1,3 @@
 #!/bin/bash
 
-oc logs -f -n europe -l app=consumer-europe
+oc logs -f -n ${NAMESPACE_PREFIX}europe -l app=consumer-europe

@@ -1,15 +1,15 @@
 - name: Recreate region namespace
   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/create-regions/create-namespace.yaml"
   vars:
-    namespace: north-america
+    namespace: "{{ namespace_prefix }}north-america"
 
 - name: Restore certificates from the backup
   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
   vars:
     secret: "backup-na-{{ item.secret }}"
-    origin: south-america
+    origin: "{{ namespace_prefix }}south-america"
     new_secret: "{{ item.secret }}"
-    destination: north-america
+    destination: "{{ namespace_prefix }}north-america"
   loop:
     - secret: na-eventstreams-cluster-ca-cert
     - secret: na-eventstreams-clients-ca-cert
@@ -23,7 +23,7 @@
       kind: Secret
       metadata:
         name: "{{ item.name }}"
-        namespace: north-america
+        namespace: "{{ namespace_prefix }}north-america"
         annotations:
           eventstreams.ibm.com/ca-cert-generation: "0"
         labels:
@@ -46,7 +46,7 @@
       kind: Secret
       metadata:
         name: "{{ item.name }}"
-        namespace: north-america
+        namespace: "{{ namespace_prefix }}north-america"
         annotations:
           eventstreams.ibm.com/ca-key-generation: "0"
         labels:
@@ -67,7 +67,7 @@
     validate_certs: false
     state: present
     name: na-eventstreams
-    namespace: north-america
+    namespace: "{{ namespace_prefix }}north-america"
     template: "{{ playbook_dir }}/03-recreate-from-backup/templates/backup-es-instance.yaml"
     wait: true
     wait_condition:
@@ -79,8 +79,8 @@
   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/k8s/copy-secret.yaml"
   vars:
     secret: "backup-na-{{ item.secret }}"
-    origin: south-america
-    destination: north-america
+    origin: "{{ namespace_prefix }}south-america"
+    destination: "{{ namespace_prefix }}north-america"
   loop:
     - secret: es-admin
     - secret: consumer-southamerica
@@ -91,7 +91,7 @@
   kubernetes.core.k8s:
     validate_certs: false
     state: present
-    namespace: north-america
+    namespace: "{{ namespace_prefix }}north-america"
     template: "{{ playbook_dir }}/03-recreate-from-backup/templates/{{ item.file }}"
     wait: true
     wait_condition:
@@ -110,7 +110,7 @@
   kubernetes.core.k8s:
     validate_certs: false
     state: present
-    namespace: north-america
+    namespace: "{{ namespace_prefix }}north-america"
     template: "{{ playbook_dir }}/../common/producer/templates/topics.yaml"
   vars:
     es_cluster: na-eventstreams

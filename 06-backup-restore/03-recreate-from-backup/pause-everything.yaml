@@ -5,7 +5,7 @@
       kind: KafkaMirrorMaker2
       metadata:
         name: mm2-backup
-        namespace: europe
+        namespace: "{{ namespace_prefix }}europe"
       spec:
         replicas: 0
 
@@ -16,7 +16,7 @@
       kind: KafkaConnect
       metadata:
         name: datagen-host
-        namespace: south-america
+        namespace: "{{ namespace_prefix }}south-america"
       spec:
         replicas: 0
 
@@ -27,6 +27,6 @@
       kind: Deployment
       metadata:
         name: consumer-southamerica
-        namespace: south-america
+        namespace: "{{ namespace_prefix }}south-america"
       spec:
         replicas: 0

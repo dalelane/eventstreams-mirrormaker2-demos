@@ -11,9 +11,9 @@
           kind: KafkaConnect
           metadata:
             name: datagen-host
-            namespace: south-america
+            namespace: "{{ namespace_prefix }}south-america"
           spec:
             # resume the application as it was paused during migration
             replicas: 1
             # reconnect to the migrated cluster using the new bootstrap address
-            bootstrapServers: 'eu-eventstreams-kafka-bootstrap.europe.svc:9098'
+            bootstrapServers: 'eu-eventstreams-kafka-bootstrap.{{ namespace_prefix }}europe.svc:9098'
