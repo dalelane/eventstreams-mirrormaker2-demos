@@ -20,8 +20,9 @@
     - name: Check for playbook pre-requisites
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/pre-reqs/playbook-prereqs.yaml"
 
-    - name: Install Event Streams
-      ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/install-eventstreams/setup.yaml"
+    # In shared Lab environments, this will be done already
+    # - name: Install Event Streams
+    #   ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/install-eventstreams/setup.yaml"
 
     - name: Create the North America, South America, and Europe regions
       ansible.builtin.include_tasks: "{{ playbook_dir }}/../common/create-regions/setup.yaml"

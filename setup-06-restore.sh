@@ -15,13 +15,8 @@ if [ -z "$STUDENT_USERNAME" ]; then
     exit 1
 fi
 
-# set up a Python environment that ansible can use
-if [ ! -d venv ]; then
-    echo "Creating virtual environment for use by Ansible"
-    python3 -m venv venv
-    source ./venv/bin/activate
-    pip3 install packaging
-fi
+# use the Python environment pre-created for ansible
+source ./venv/bin/activate
 
 # run the playbook
 ansible-playbook   \
