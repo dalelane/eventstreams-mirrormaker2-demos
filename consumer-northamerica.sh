@@ -1,3 +1,9 @@
 #!/bin/bash
 
-oc logs -f -n ${NAMESPACE_PREFIX}north-america -l app=consumer-northamerica
+# check that a username is available
+if [ -z "$STUDENT_USERNAME" ]; then
+    echo "Error: Required environment variable STUDENT_USERNAME is missing."
+    exit 1
+fi
+
+oc logs -f -n ${STUDENT_USERNAME}-north-america -l app=consumer-northamerica

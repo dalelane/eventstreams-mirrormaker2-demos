@@ -9,6 +9,12 @@ if [[ $BASH_SOURCE = */* ]]; then
     cd -- "${BASH_SOURCE%/*}/" || exit
 fi
 
+# check that a username is available
+if [ -z "$STUDENT_USERNAME" ]; then
+    echo "Error: Required environment variable STUDENT_USERNAME is missing."
+    exit 1
+fi
+
 # set up a Python environment that ansible can use
 if [ ! -d venv ]; then
     echo "Creating virtual environment for use by Ansible"
@@ -22,7 +28,8 @@ ansible-playbook   \
     -e ansible_python_interpreter="$(pwd)/venv/bin/python3" \
     -e ibm_entitlement_key=$ENTITLEMENTKEY \
     -e storage_class=ocs-storagecluster-ceph-rbd \
-    -e namespace_prefix="student03-" \
+    -e namespace_prefix="$STUDENT_USERNAME-" \
     03-broadcast/setup.yaml
 
-./common/scripts/display-ui-details.sh
+# display URL and username/password for each Event Streams cluster
+NAMESPACE_PREFIX="$STUDENT_USERNAME-" ./common/scripts/display-ui-details.sh
