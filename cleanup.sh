@@ -7,7 +7,7 @@ if [ -z "$STUDENT_USERNAME" ]; then
 fi
 
 allspaces=("apps" "north-america" "south-america" "europe")
-allthings=("kafkamirrormaker2" "kafkaconnector" "kafkaconnect" "eventstreams" "kafkatopic" "kafkauser")
+allthings=("kafkamirrormaker2" "kafkaconnector" "kafkaconnect" "eventstreams" "kafkatopic" "kafkauser" "pvc")
 
 for space in "${allspaces[@]}"
 do
