@@ -19,4 +19,8 @@ do
     do
         oc delete -n $STUDENT_USERNAME-$space --wait=true `oc get -n $STUDENT_USERNAME-$space -o name $thing`
     done
+
+    oc delete -n $STUDENT_USERNAME-$space `oc get -n $STUDENT_USERNAME-$space secret -o name | grep eventstreams`
+    oc delete -n $STUDENT_USERNAME-$space `oc get -n $STUDENT_USERNAME-$space secret -o name | grep mm2`
+
 done
