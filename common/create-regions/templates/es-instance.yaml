@@ -1,9 +1,7 @@
 apiVersion: eventstreams.ibm.com/v1beta2
 kind: EventStreams
-metadata:
+# metadata:
   # name: eventstreams
-  annotations:
-    eventstreams.ibm.com/apicurio-registry-version: '>=2.4'
 spec:
   adminApi: {}
   adminUI:
@@ -11,11 +9,8 @@ spec:
       - type: scram-sha-512
   license:
     accept: true
-    license: L-HRZF-DWHH7A
+    license: L-AUKS-FKVXVL
     use: EventAutomationNonProduction
-  requestIbmServices:
-    iam: false
-    monitoring: false
   strimziOverrides:
     entityOperator:
       topicOperator: {}

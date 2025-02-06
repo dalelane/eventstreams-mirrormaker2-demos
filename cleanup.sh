@@ -1,5 +1,9 @@
 #!/bin/bash
 
+oc delete `oc get kt -o name -n north-america` -n north-america
+oc delete `oc get kt -o name -n south-america` -n south-america
+oc delete `oc get kt -o name -n europe       ` -n europe
+
 oc delete project --ignore-not-found north-america
 oc delete project --ignore-not-found south-america
 oc delete project --ignore-not-found europe
