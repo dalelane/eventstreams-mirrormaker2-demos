@@ -66,3 +66,9 @@ spec:
         artifacts:
           - type: jar
             url: https://github.com/IBM/kafka-connect-loosehangerjeans-source/releases/download/0.0.4/kafka-connect-loosehangerjeans-source-0.0.4-jar-with-dependencies.jar
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: eventstreams-metrics
+        key: connect-metrics-config.yaml

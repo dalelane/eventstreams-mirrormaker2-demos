@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+  name: eventstreams-resources-metrics
+spec:
+  namespaceSelector:
+    matchNames:
+      - {{ namespace }}
+  podMetricsEndpoints:
+    - path: /metrics
+      port: tcp-prometheus
+      relabelings:
+        - action: replace
+          regex: (.*)
+          replacement: kubernetes-pods
+          separator: ;
+          sourceLabels:
+            - job
+          targetLabel: job
+  podTargetLabels:
+    - eventstreams.ibm.com/cluster
+    - eventstreams.ibm.com/name
+    - eventstreams.ibm.com/kind
+  selector:
+    matchExpressions:
+      - key: eventstreams.ibm.com/kind
+        operator: In
+        values:
+          - KafkaConnect
+          - KafkaMirrorMaker2

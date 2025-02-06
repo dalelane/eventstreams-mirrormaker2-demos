@@ -152,3 +152,15 @@ spec:
           productName: IBM Event Streams for Non Production
           eventstreams.production.type: CloudPakForIntegrationNonProduction
           productMetric: VIRTUAL_PROCESSOR_CORE
+
+
+  ##################################################
+  # COLLECT METRICS ABOUT MIRRORING PROGRESS
+  ##################################################
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: eventstreams-metrics
+        key: mm2-metrics-config.yaml
+

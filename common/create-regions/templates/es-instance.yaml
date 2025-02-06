@@ -16,6 +16,12 @@ spec:
       topicOperator: {}
       userOperator: {}
     kafka:
+      metricsConfig:
+        type: jmxPrometheusExporter
+        valueFrom:
+          configMapKeyRef:
+            name: eventstreams-metrics
+            key: kafka-metrics-config.yaml
       authorization:
         type: simple
       config:

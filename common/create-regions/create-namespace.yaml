@@ -26,3 +26,26 @@
       data:
         .dockerconfigjson: "{{ entitled_registry_secret[0] | to_json | string | b64encode }}"
     validate_certs: false
+
+
+# --------------------------------------------------------------------
+#  additional namespace resources in support of metrics collection
+# --------------------------------------------------------------------
+
+- name: Define metrics collection rules for {{ namespace }}
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    name: "eventstreams-metrics"
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/create-regions/templates/metrics.yaml"
+    wait: false
+
+- name: Prepare pod monitors for {{ namespace }}
+  kubernetes.core.k8s:
+    validate_certs: false
+    state: present
+    namespace: "{{ namespace }}"
+    template: "{{ playbook_dir }}/../common/create-regions/templates/pod-monitors.yaml"
+  vars:
+    namespace: "{{ namespace }}"
