@@ -10,7 +10,7 @@ spec:
       - type: scram-sha-512
   license:
     accept: true
-    license: L-AUKS-FKVXVL
+    license: L-CYBH-K48BZQ
     use: EventAutomationNonProduction
   strimziOverrides:
     # reuse the same certificate authority from the
@@ -34,15 +34,21 @@ spec:
           port: 9098
           tls: true
           type: internal
-      replicas: 3
-      storage:
-        type: persistent-claim
-        size: 10Gi
-        class: {{ storage_class }}
-    zookeeper:
-      replicas: 3
-      storage:
-        type: persistent-claim
-        size: 2Gi
-        class: {{ storage_class }}
+    nodePools:
+      - name: broker
+        replicas: 3
+        roles:
+          - broker
+        storage:
+          type: persistent-claim
+          size: 10Gi
+          class: {{ storage_class }}
+      - name: controller
+        replicas: 3
+        roles:
+          - controller
+        storage:
+          type: persistent-claim
+          size: 2Gi
+          class: {{ storage_class }}
   version: latest
